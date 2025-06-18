@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUTTON CLICKO</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+</head>
+<body>
+    <div class="main-card">
+      <h1>BUTTON CLICKO</h1>
+      <div id="three-btn-container" style="width:340px; height:260px; margin:2rem auto;"></div>
+      <div style="text-align:center; font-size:1.5rem; color:#aeeaff; margin-top:1.2rem;">
+        Score: <span id="score">0</span>
+      </div>
+      <a href="index.html" class="back-home-future">
+        <span class="home-icon">🏠</span> BACK TO HOME
+        <canvas id="mini-houses-canvas" width="120" height="40" style="vertical-align:middle; margin-left:10px;"></canvas>
+      </a>
+    </div>
+    <script>
+// 3D Button Clicko Game
+let clickoScore = 0;
+const container = document.getElementById('three-btn-container');
+const width = container.offsetWidth;
+const height = container.offsetHeight;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, width/height, 0.1, 1000);
+camera.position.z = 120;
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+container.appendChild(renderer.domElement);
+// 3D Button
+const geometry = new THREE.CylinderGeometry(40, 40, 18, 64);
+const material = new THREE.MeshPhysicalMaterial({ color: 0xff00ff, roughness: 0.1, metalness: 0.8, clearcoat: 1, transparent: true, opacity: 0.95, emissive: 0xff00ff, emissiveIntensity: 0.5 });
+const buttonMesh = new THREE.Mesh(geometry, material);
+scene.add(buttonMesh);
+// Glowing ring
+const ringGeometry = new THREE.TorusGeometry(32, 3.5, 32, 100);
+const ringMaterial = new THREE.MeshPhysicalMaterial({ color: 0x00eaff, roughness: 0.2, metalness: 0.7, clearcoat: 1, transparent: true, opacity: 0.25, emissive: 0x00eaff, emissiveIntensity: 0.7 });
+const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+ring.position.y = 10;
+scene.add(ring);
+// Animate
+function animate() {
+  requestAnimationFrame(animate);
+  buttonMesh.rotation.y += 0.01;
+  ring.rotation.z += 0.02;
+  renderer.render(scene, camera);
+}
+animate();
+// Raycaster for click detection
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+renderer.domElement.addEventListener('pointerdown', (event) => {
+  const rect = renderer.domElement.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(buttonMesh);
+  if (intersects.length > 0) {
+    clickoScore++;
+    document.getElementById('score').textContent = clickoScore;
+    // Animate button press
+    buttonMesh.position.y = -8;
+    setTimeout(() => { buttonMesh.position.y = 0; }, 120);
+    // Flash ring
+    ring.material.emissiveIntensity = 1.5;
+    setTimeout(() => { ring.material.emissiveIntensity = 0.7; }, 120);
+  }
+});
+// Mini houses falling animation for back to home
+(function(){
+  const canvas = document.getElementById('mini-houses-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const houses = Array.from({length: 7}, (_,i) => ({
+    x: 10 + i*15 + Math.random()*8,
+    y: Math.random()*-40,
+    speed: 0.7+Math.random()*1.2,
+    color: ['#ff00ff','#fff176','#00eaff','#ff6fef','#b388ff','#ffb347','#00ffea'][i%7]
+  }));
+  function drawHouse(house) {
+    ctx.save();
+    ctx.translate(house.x, house.y);
+    ctx.fillStyle = house.color;
+    ctx.shadowColor = house.color;
+    ctx.shadowBlur = 8;
+    ctx.fillRect(-5, 0, 10, 10);
+    ctx.beginPath();
+    ctx.moveTo(-6, 0);
+    ctx.lineTo(0, -7);
+    ctx.lineTo(6, 0);
+    ctx.closePath();
+    ctx.fillStyle = '#fff';
+    ctx.globalAlpha = 0.8;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(const house of houses) {
+      drawHouse(house);
+      house.y += house.speed;
+      if(house.y > 40) { house.y = Math.random()*-20; }
+    }
+    requestAnimationFrame(animate);
+  }
+  animate();
+})();
+    </script>
+</body>
+</html>

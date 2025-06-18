@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jellyfish Web Projects</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Three.js CDN for 3D covers -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.153.0/build/three.min.js"></script>
+</head>
+<body>
+    <canvas id="cover-canvas"></canvas>
+    <div class="cover-grid">
+      <div class="cover-tile" onclick="location.href='click-counter.html'">
+        <div class="cover-3d" id="cover-click"></div>
+        <div class="cover-title">BUTTON CLICKO</div>
+      </div>
+      <div class="cover-tile" onclick="location.href='reaction-tester.html'">
+        <div class="cover-3d" id="cover-reaction"></div>
+        <div class="cover-title">REACTION TIMIO</div>
+      </div>
+      <div class="cover-tile" onclick="location.href='quiz.html'">
+        <div class="cover-3d" id="cover-quiz"></div>
+        <div class="cover-title">LETS SEE YOUR MATH LEVEL</div>
+      </div>
+      <div class="cover-tile" onclick="location.href='coin-flip.html'">
+        <div class="cover-3d" id="cover-coin"></div>
+        <div class="cover-title">COIN FLIP</div>
+      </div>
+      <div class="cover-tile" onclick="location.href='bouncing-ball.html'">
+        <div class="cover-3d" id="cover-ball"></div>
+        <div class="cover-title">BOUNCE BALLIO</div>
+      </div>
+    </div>
+    <script>
+// 3D fun covers for each project using Three.js
+function create3DBall(containerId, color) {
+  const w = document.getElementById(containerId).offsetWidth;
+  const h = document.getElementById(containerId).offsetHeight;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, w/h, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(w, h);
+  document.getElementById(containerId).appendChild(renderer.domElement);
+  // Ball with glowing core and transparent shell
+  const coreGeometry = new THREE.SphereGeometry(24, 64, 64);
+  const coreMaterial = new THREE.MeshPhysicalMaterial({ color, roughness: 0.1, metalness: 0.8, clearcoat: 1, transparent: true, opacity: 0.95, emissive: color, emissiveIntensity: 0.5 });
+  const core = new THREE.Mesh(coreGeometry, coreMaterial);
+  scene.add(core);
+  // Outer shell
+  const shellGeometry = new THREE.SphereGeometry(32, 64, 64);
+  const shellMaterial = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.2, clearcoat: 1, transparent: true, opacity: 0.18 });
+  const shell = new THREE.Mesh(shellGeometry, shellMaterial);
+  scene.add(shell);
+  // Floating jellyfish tentacles (tubes)
+  for(let i=0;i<6;i++){
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0,32,0),
+      new THREE.Vector3(Math.sin(i)*18,60+Math.cos(i)*10,Math.cos(i)*18),
+      new THREE.Vector3(Math.sin(i+1)*28,120+Math.cos(i+1)*20,Math.cos(i+1)*28)
+    ]);
+    const tubeGeometry = new THREE.TubeGeometry(curve, 32, 1.5, 8, false);
+    const tubeMaterial = new THREE.MeshPhysicalMaterial({ color: 0x00eaff, transparent: true, opacity: 0.5, metalness: 0.7, roughness: 0.1 });
+    const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+    scene.add(tube);
+  }
+  camera.position.z = 120;
+  function animate() {
+    requestAnimationFrame(animate);
+    core.rotation.y += 0.01;
+    core.rotation.x += 0.005;
+    shell.rotation.y -= 0.008;
+    shell.rotation.x -= 0.004;
+    scene.children.forEach((obj, idx) => {
+      if(obj.geometry && obj.geometry.type === 'TubeGeometry') {
+        obj.rotation.y += 0.01 + idx*0.001;
+      }
+    });
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+function create3DButton(containerId) {
+  const w = document.getElementById(containerId).offsetWidth;
+  const h = document.getElementById(containerId).offsetHeight;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, w/h, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(w, h);
+  document.getElementById(containerId).appendChild(renderer.domElement);
+  // Button base
+  const geometry = new THREE.CylinderGeometry(28, 28, 12, 128);
+  const material = new THREE.MeshPhysicalMaterial({ color: 0x00eaff, roughness: 0.1, metalness: 0.8, clearcoat: 1, transparent: true, opacity: 0.9 });
+  const button = new THREE.Mesh(geometry, material);
+  scene.add(button);
+  // Glowing ring
+  const ringGeometry = new THREE.TorusGeometry(20, 2.5, 32, 100);
+  const ringMaterial = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.7, clearcoat: 1, transparent: true, opacity: 0.25, emissive: 0x00eaff, emissiveIntensity: 0.7 });
+  const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+  ring.position.y = 7;
+  scene.add(ring);
+  camera.position.z = 60;
+  function animate() {
+    requestAnimationFrame(animate);
+    button.rotation.y += 0.02;
+    ring.rotation.z += 0.03;
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+function create3DQuiz(containerId) {
+  const w = document.getElementById(containerId).offsetWidth;
+  const h = document.getElementById(containerId).offsetHeight;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, w/h, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(w, h);
+  document.getElementById(containerId).appendChild(renderer.domElement);
+  // Cube
+  const geometry = new THREE.BoxGeometry(40, 40, 40, 8, 8, 8);
+  const material = new THREE.MeshPhysicalMaterial({ color: 0xaeeaff, roughness: 0.2, metalness: 0.7, clearcoat: 1, transparent: true, opacity: 0.85 });
+  const cube = new THREE.Mesh(geometry, material);
+  scene.add(cube);
+  // Numbers on faces (using sprites)
+  const loader = new THREE.TextureLoader();
+  for(let i=0;i<3;i++){
+    const spriteMaterial = new THREE.SpriteMaterial({ map: loader.load('https://dummyimage.com/64x64/00eaff/fff&text='+[1,2,3,4,5,6][i]), transparent: true });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.position.set(0, 22, 22-22*i);
+    sprite.scale.set(18,18,1);
+    cube.add(sprite);
+  }
+  camera.position.z = 90;
+  function animate() {
+    requestAnimationFrame(animate);
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.015;
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+function create3DCoin(containerId) {
+  const w = document.getElementById(containerId).offsetWidth;
+  const h = document.getElementById(containerId).offsetHeight;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, w/h, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(w, h);
+  document.getElementById(containerId).appendChild(renderer.domElement);
+  // Coin
+  const geometry = new THREE.CylinderGeometry(28, 28, 6, 128);
+  const material = new THREE.MeshPhysicalMaterial({ color: 0xffe066, roughness: 0.2, metalness: 0.9, clearcoat: 1, transparent: true, opacity: 0.95 });
+  const coin = new THREE.Mesh(geometry, material);
+  scene.add(coin);
+  // 3D dice
+  const diceGeometry = new THREE.BoxGeometry(18, 18, 18, 4, 4, 4);
+  const diceMaterial = new THREE.MeshPhysicalMaterial({ color: 0xaeeaff, roughness: 0.2, metalness: 0.7, clearcoat: 1, transparent: true, opacity: 0.85 });
+  const dice = new THREE.Mesh(diceGeometry, diceMaterial);
+  dice.position.set(0, 18, 0);
+  scene.add(dice);
+  camera.position.z = 60;
+  function animate() {
+    requestAnimationFrame(animate);
+    coin.rotation.y += 0.04;
+    dice.rotation.x += 0.03;
+    dice.rotation.y += 0.04;
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+window.addEventListener('DOMContentLoaded', () => {
+  create3DButton('cover-click');
+  create3DBall('cover-reaction', 0xff00ff);
+  create3DQuiz('cover-quiz');
+  create3DCoin('cover-coin');
+  create3DBall('cover-ball', 0x00eaff);
+});
+// --- 3D OCEAN BACKGROUND ---
+// Remove any old 2D canvas background and ensure only the 3D ocean is used
+// Neon color palette
+var neonColors = [
+  '#00eaff','#aeeaff','#ff00ff','#fff176','#ff6fef','#00ffb3','#ffb347','#b388ff','#00ffea','#ff5eae',
+  '#39ff14','#ff073a','#fffb00','#00fffb','#ff00c8','#ff8c00','#00ff00','#00bfff','#ff1493','#ff4500',
+  '#7cfc00','#00fa9a','#00ced1','#9400d3','#ff6347','#ffd700','#00ff7f','#1e90ff','#ff69b4','#00ffcc',
+  '#ffb6c1','#00ff99','#ff00a6','#00ffea','#ffb347','#b388ff','#00ffea','#ff5eae','#39ff14','#ff073a',
+  '#fffb00','#00fffb','#ff00c8','#ff8c00','#00ff00','#00bfff','#ff1493','#ff4500','#7cfc00','#00fa9a',
+  '#00ced1','#9400d3','#ff6347','#ffd700','#00ff7f','#1e90ff','#ff69b4','#00ffcc','#ffb6c1','#00ff99',
+  '#ff00a6','#00ffea','#ffb347','#b388ff','#00ffea','#ff5eae','#39ff14','#ff073a','#fffb00','#00fffb',
+  '#ff00c8','#ff8c00','#00ff00','#00bfff','#ff1493','#ff4500','#7cfc00','#00fa9a','#00ced1','#9400d3',
+  '#ff6347','#ffd700','#00ff7f','#1e90ff','#ff69b4','#00ffcc','#ffb6c1','#00ff99','#ff00a6','#00ffea',
+  '#ffb347','#b388ff','#00ffea','#ff5eae','#39ff14','#ff073a','#fffb00','#00fffb','#ff00c8','#ff8c00'
+];
+function create3DOceanBackground() {
+  if (!window.THREE) return;
+  const oceanScene = new THREE.Scene();
+  // Black background for deep space effect
+  oceanScene.background = new THREE.Color('#000');
+  const oceanCamera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 3000);
+  oceanCamera.position.z = 1200;
+  const oceanRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  oceanRenderer.setSize(window.innerWidth, window.innerHeight);
+  oceanRenderer.domElement.style.position = 'fixed';
+  oceanRenderer.domElement.style.top = '0';
+  oceanRenderer.domElement.style.left = '0';
+  oceanRenderer.domElement.style.width = '100vw';
+  oceanRenderer.domElement.style.height = '100vh';
+  oceanRenderer.domElement.style.zIndex = '0';
+  oceanRenderer.domElement.style.pointerEvents = 'none';
+  document.body.appendChild(oceanRenderer.domElement);
+  // 40 neon jellyfish, strictly avoiding the center (no x between -200 and 200)
+  const jellyfishes = [];
+  for(let i=0;i<40;i++){
+    let x;
+    // Place only on left or right, never in center
+    if (Math.random() < 0.5) {
+      // Left side
+      x = Math.random()*600-1200; // -1200 to -600
+    } else {
+      // Right side
+      x = Math.random()*600+600; // 600 to 1200
+    }
+    let y = Math.random()*800-400;
+    let z = Math.random()*-1200;
+    const isBig = Math.random() < 0.12;
+    const r = isBig ? 70+Math.random()*20 : 32+Math.random()*18;
+    const segments = isBig ? 48 : 32;
+    const color = neonColors[i%neonColors.length];
+    const bodyGeo = new THREE.SphereGeometry(r, segments, segments);
+    const bodyMat = new THREE.MeshPhysicalMaterial({ color, metalness: 0.7, roughness: 0.1, clearcoat: 1, transparent: true, opacity: isBig ? 0.8 : 0.6, emissive: color, emissiveIntensity: isBig ? 0.8 : 0.5 });
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    // Fewer tentacles for a calmer look
+    const tentacleCount = isBig ? 10 : 6;
+    for(let t=0;t<tentacleCount;t++){
+      const tentacleCurve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0,0,0),
+        new THREE.Vector3(Math.sin(t)*r*0.22, r*1.1+Math.cos(t)*r*0.10, Math.cos(t)*r*0.15),
+        new THREE.Vector3(Math.sin(t+1)*r*0.3, r*1.8+Math.cos(t+1)*r*0.18, Math.cos(t+1)*r*0.22)
+      ]);
+      const tubeGeo = new THREE.TubeGeometry(tentacleCurve, 24, isBig ? 2.5 : 1.5, 8, false);
+      const tubeMat = new THREE.MeshPhysicalMaterial({ color, transparent: true, opacity: isBig ? 0.5 : 0.35, metalness: 0.7, roughness: 0.1, emissive: color, emissiveIntensity: isBig ? 0.7 : 0.4 });
+      const tube = new THREE.Mesh(tubeGeo, tubeMat);
+      tube.position.y = -r;
+      body.add(tube);
+    }
+    body.position.set(x, y, z);
+    oceanScene.add(body);
+    jellyfishes.push({body, speed: 0.4+Math.random()*0.7, dir: Math.random()*Math.PI*2});
+  }
+  // 100 neon fish
+  const fishes = [];
+  for(let i=0;i<100;i++){
+    const fishGeo = new THREE.ConeGeometry(18, 60, 32);
+    const color = neonColors[(i*3)%neonColors.length];
+    const fishMat = new THREE.MeshPhysicalMaterial({ color, metalness: 0.7, roughness: 0.2, clearcoat: 1, transparent: true, opacity: 0.85, emissive: color, emissiveIntensity: 0.6 });
+    const fish = new THREE.Mesh(fishGeo, fishMat);
+    fish.position.set(Math.random()*2400-1200, Math.random()*1200-600, Math.random()*-2000);
+    fish.rotation.z = Math.PI/2;
+    oceanScene.add(fish);
+    fishes.push({mesh: fish, speed: 1+Math.random()*2, dir: Math.random()*Math.PI*2});
+  }
+  // 100 neon seaweed
+  for(let i=0;i<100;i++){
+    const seaweedGeo = new THREE.CylinderGeometry(4, 8, 120+Math.random()*60, 16);
+    const color = neonColors[(i*7)%neonColors.length];
+    const seaweedMat = new THREE.MeshPhysicalMaterial({ color, metalness: 0.3, roughness: 0.7, clearcoat: 0.5, transparent: true, opacity: 0.7, emissive: color, emissiveIntensity: 0.3 });
+    const seaweed = new THREE.Mesh(seaweedGeo, seaweedMat);
+    seaweed.position.set(Math.random()*2400-1200, 600+Math.random()*200, Math.random()*-2000);
+    oceanScene.add(seaweed);
+  }
+  function animate() {
+    for(const j of jellyfishes) {
+      j.body.position.x += Math.cos(j.dir)*j.speed;
+      j.body.position.y += Math.sin(j.dir)*j.speed;
+      j.body.position.z += Math.sin(j.dir*0.7)*j.speed*0.5;
+      j.body.rotation.y += 0.01;
+      j.body.rotation.x += 0.008;
+      if(j.body.position.x > 1300) j.body.position.x = -1300;
+      if(j.body.position.x < -1300) j.body.position.x = 1300;
+      if(j.body.position.y > 800) j.body.position.y = -800;
+      if(j.body.position.y < -800) j.body.position.y = 800;
+      if(j.body.position.z > 0) j.body.position.z = -2000;
+      if(j.body.position.z < -2000) j.body.position.z = 0;
+    }
+    for(const f of fishes) {
+      f.mesh.position.x += Math.cos(f.dir)*f.speed;
+      f.mesh.position.y += Math.sin(f.dir)*f.speed;
+      f.mesh.position.z += Math.sin(f.dir*0.7)*f.speed*0.5;
+      f.mesh.rotation.y = Math.sin(Date.now()/700+f.mesh.position.x/100)*0.3;
+      if(f.mesh.position.x > 1300) f.mesh.position.x = -1300;
+      if(f.mesh.position.x < -1300) f.mesh.position.x = 1300;
+      if(f.mesh.position.y > 800) f.mesh.position.y = -800;
+      if(f.mesh.position.y < -800) f.mesh.position.y = 800;
+      if(f.mesh.position.z > 0) f.mesh.position.z = -2000;
+      if(f.mesh.position.z < -2000) f.mesh.position.z = 0;
+    }
+    oceanRenderer.render(oceanScene, oceanCamera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+  window.addEventListener('resize', () => {
+    oceanCamera.aspect = window.innerWidth/window.innerHeight;
+    oceanCamera.updateProjectionMatrix();
+    oceanRenderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
+window.addEventListener('DOMContentLoaded', () => {
+  create3DOceanBackground();
+});
+    </script>
+</body>
+</html>
